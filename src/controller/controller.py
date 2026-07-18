@@ -100,6 +100,8 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
 
     @app.get("/beacon/at")
     def handle_get_pulse_by_timestamp(timestamp: datetime = Query(...)):
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
         now = datetime.now(timezone.utc)
         if timestamp > now:
             raise HTTPException(status_code=400, detail="Timestamp is in the future")
