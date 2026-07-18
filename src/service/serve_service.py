@@ -33,7 +33,7 @@ class ServeService:
         if num_bytes <= 0:
             raise ValueError("num_bytes must be positive")
         if num_bytes > config.MAX_BYTES_PER_REQUEST:
-            raise ValueError(f"num_bytes exceeds max allowed ({config.MAX_BITS_PER_REQUEST})")
+            raise ValueError(f"num_bytes exceeds max allowed ({config.MAX_BYTES_PER_REQUEST})")
 
         available = self._pool_repository.total_bytes()
         if available < num_bytes:
