@@ -49,6 +49,7 @@ def configure_logging(level: str | None = None) -> None:
         return
 
     log_dir = LOG_BASE_DIR
+    log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / f"{date.today():%Y-%m-%d}.log"
 
     logging.basicConfig(
