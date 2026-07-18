@@ -6,6 +6,7 @@ working. TTL, archive settings, beacon settings, etc. will grow here later.
 """
 
 from pathlib import Path
+import os
 
 # How long a chunk may sit in the pool before it's considered expired
 # and should be swept out (archived).
@@ -15,7 +16,8 @@ POOL_TTL_SECONDS = 10
 #GENERATOR_INTERVAL_SECONDS = 0.50
 
 # HTTP server settings.
-API_HOST = "127.0.0.1"  # bind to loopback / VPN interface only, never 0.0.0.0
+#API_HOST = "127.0.0.1"  # for local testing
+API_HOST = "10.8.0.2"
 API_PORT = 8000
 
 # Rough empirical estimate of sustained generation throughput, used only
@@ -55,3 +57,5 @@ BEACON_PULSE_INTERVAL_SECONDS = 60
 BEACON_OUTPUT_BYTES = 64
 BEACON_WAIT_TIMEOUT_SECONDS = 5.0
 BEACON_WAIT_POLL_INTERVAL_SECONDS = 0.1
+
+WELLSPRING_SHARED_SECRET = os.environ.get("WELLSPRING_SHARED_SECRET", "")

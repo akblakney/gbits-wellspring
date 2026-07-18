@@ -1,9 +1,8 @@
 import base64
 import logging
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Header, Depends
 from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
 
 from service.serve_service import ServeService, InsufficientPoolDataError
 from service.pool_service import PoolService
@@ -17,18 +16,20 @@ from service.daily_stats_service import DailyStatsService
 
 from datetime import datetime, timezone
 
+from config import config
+
 logger = logging.getLogger(__name__)
+
+def verify_shared_secret(authorization: str | None = Header(None)) -> None:
+    if not config.WELLSPRING_SHARED_SECRET:
+        raise HTTPException(status_code=500, detail="Server misconfigured: no auth secret set")
+
+    if authorization != f"Bearer {config.WELLSPRING_SHARED_SECRET}":
+        raise HTTPException(status_code=401, detail="Invalid or missing auth token")
 
 
 def create_app(serve_service: ServeService, pool_service: PoolService, stats_service: StatsService, daily_stats_service: DailyStatsService, metrics_service : MetricsService, beacon_service: BeaconService) -> FastAPI:
-    app = FastAPI(title="Wellspring")
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],       # dev only — see note below
-        allow_methods=["GET"],
-        allow_headers=["*"],
-    )
+    app = FastAPI(title="Wellspring", dependencies=[Depends(verify_shared_secret)])
 
     @app.get("/bits")
     def handle_get_bits(num_bytes: int = Query(64, gt=0, description="number of bytes to request"), plot: bool = False):
