@@ -10,7 +10,7 @@ import os
 
 # How long a chunk may sit in the pool before it's considered expired
 # and should be swept out (archived).
-POOL_TTL_SECONDS = 10
+POOL_TTL_SECONDS = 60
 
 # How often the (stubbed) generator produces a new chunk.
 #GENERATOR_INTERVAL_SECONDS = 0.50
@@ -36,7 +36,7 @@ ESTIMATED_POOL_CAPACITY_BYTES = ESTIMATED_GENERATION_RATE_BYTES_PER_SECOND * POO
 # in the expiry window (leaves room for other concurrent requests and,
 # later, the beacon). Currently set to 1/4 of the estimated one-minute
 # pool capacity — revisit once real throughput and traffic are known.
-MAX_BYTES_PER_REQUEST = (ESTIMATED_POOL_CAPACITY_BYTES // 4) * 8
+MAX_BYTES_PER_REQUEST = 2048
 
 # --- Archive settings ---
 
