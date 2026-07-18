@@ -8,7 +8,7 @@ import logging
 import threading
 import time
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Iterable
 
 from repository.pool_repository import PoolRepository
 from repository.beacon_repository import BeaconRepository
@@ -74,7 +74,8 @@ class BeaconService:
         aligned = self._align_to_pulse_boundary(timestamp_utc)
         return self._beacon_repository.get_by_timestamp(aligned)
 
-    def verify_chain(self, pulses: list[dict[str, Any]]) -> bool:
+    @staticmethod
+    def verify_chain(pulses: "Iterable[dict[str, Any]]") -> bool:
         expected_previous_hash = None
         for i, pulse in enumerate(pulses):
             if i == 0:
@@ -83,7 +84,7 @@ class BeaconService:
                 logger.warning("Chain break at pulse_index=%s: previous_hash mismatch", pulse["pulse_index"])
                 return False
 
-            if self._compute_pulse_hash(pulse) != pulse["pulse_hash"]:
+            if BeaconService._compute_pulse_hash(pulse) != pulse["pulse_hash"]:
                 logger.warning("Chain break at pulse_index=%s: pulse_hash mismatch", pulse["pulse_index"])
                 return False
 
