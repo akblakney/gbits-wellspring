@@ -46,15 +46,22 @@ class Generator:
 
     def run(self) -> None:
         """Main loop: produce a chunk of bytes every GENERATOR_INTERVAL_SECONDS."""
-        while not self._stop_event.is_set():
-            chunk = self._generate_raw_bytes()
-            self._generation_service.ingest(chunk)
+        self.entropy_source.open()
+        log.info("Entropy source opened")
+        try:
+            while not self._stop_event.is_set():
+                try:
+                    chunk = self._generate_raw_bytes()
+                    self._generation_service.ingest(chunk)
+                except Exception:
+                    log.error("Unexpected error in generator loop -- continuing", exc_info=True)
+        finally:
+            self.entropy_source.close()
+            log.info("Entropy source closed")
 
-    
     def _generate_raw_bytes(self) -> Chunk:
         log.debug('in generate')
-        with self.entropy_source:
-            raw = self.entropy_source.read_raw()
+        raw = self.entropy_source.read_raw()
         values = self.entropy_source.standardize(raw)
         bits = self.entropy_source.extract(values)
         data = self.von_neumann_extractor.extract(bits)
