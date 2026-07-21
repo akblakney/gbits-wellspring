@@ -52,7 +52,7 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
             "num_bytes": num_bytes,
             "bytes": bits_response.data.hex(),
             "audio_plot_png_base64": plot_base64,
-            "zoom_plog": zoom_plot,
+            "zoom_plot": zoom_plot,
             "pairs_discarded": bits_response.pairs_discarded,
             "pairs_kept": bits_response.pairs_kept,
             "total_chunks": bits_response.total_chunks
