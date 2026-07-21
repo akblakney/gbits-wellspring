@@ -44,7 +44,7 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
             raise HTTPException(status_code=400, detail=str(e))
 
         plot_base64 = render_audio_plot_base64(bits_response.audio_samples) if plot else None
-        zoom_plot = render_audio_plot_base64(bits_response.audio_samples[:min(1000, len(bits_response.audio_samples))]) if plot else None
+        zoom_plot = render_audio_plot_base64(bits_response.audio_samples[:min(400, len(bits_response.audio_samples))]) if plot else None
 
         logger.info('Exiting /bits')
 
