@@ -1,14 +1,3 @@
-"""
-Generator — the production loop.
-
-STUB: uses Python's built-in `random` module to produce bytes on an
-interval, standing in for real microphone-noise entropy capture. Runs
-as a background thread so the API server can serve requests concurrently.
-
-Real mic capture + von Neumann extraction will replace
-_generate_raw_bytes() later without changing the run loop's shape.
-"""
-
 import logging
 import random
 import threading

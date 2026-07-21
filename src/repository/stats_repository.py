@@ -1,16 +1,6 @@
 """
-StatsRepository — owns the on-disk cache format for statistical test results.
-
 Layout: <ARCHIVE_ROOT_PATH>/<YYYY-MM-DD>/<HH>.stats.json, sitting alongside
 the existing <HH>.bin / <HH>.meta.jsonl files for that hour.
-
-Since a past hour's .bin file is immutable once the hour has closed, its
-.stats.json result is valid forever once written — there's no staleness
-or TTL concept here, just "does it exist yet."
-
-This class only knows how to read/write the cache file. It has no
-opinion about *when* something should be computed, and no knowledge of
-your actual statistical tests — that's StatsService's job.
 """
 
 import json
@@ -63,10 +53,7 @@ class StatsRepository:
 
 def _json_default(obj: Any) -> Any:
     """
-    Fallback for json.dump to handle numpy scalar types, which your test
-    suite will likely return (np.float64, np.int64, np.bool_, etc.) and
-    which aren't JSON-serializable by default.
-    """
+    Fallback for json.dump to handle numpy scalar types"""
     if hasattr(obj, "item"):  # covers np.generic (numpy scalars)
         return obj.item()
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")

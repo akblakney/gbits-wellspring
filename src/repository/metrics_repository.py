@@ -1,17 +1,3 @@
-"""
-MetricsRepository — owns the on-disk format for global, ever-increasing
-counters (total bytes served, total bytes archived, etc).
-
-A single flat JSON file, atomically written (temp file + rename, same
-pattern as StatsRepository) so a crash mid-write never corrupts it.
-
-This class only knows how to read/write the whole counters blob. It has
-no locking and no increment logic of its own -- that's MetricsService's
-job, since incrementing safely under concurrency requires holding a lock
-across "read current value, add, write back," which only makes sense to
-do once, in the layer that owns the in-memory state.
-"""
-
 import json
 import logging
 import os

@@ -1,30 +1,3 @@
-"""
-DailyStatsService — aggregates a completed day's hourly test results into
-per-test lists of p-values (or, for a small allow-list of tests, a single
-representative statistic used in lieu of a p-value).
-
-Relies entirely on StatsService.get_summary_for_hour() for the actual
-per-hour compute-or-cache work -- each hour is already cached
-independently (immutable once written), so aggregating a full day is
-just: read/compute 24 small per-hour results, then walk each one and
-pull out the fields listed in EXTRACTION_RULES below.
-
-EXTRACTION_RULES is deliberately explicit rather than "auto-detect
-anything with a p_value key" or similar heuristics -- as your test
-suite grows, you add a line here to opt a new test in, rather than the
-service silently guessing whether a new field is meaningful to surface.
-Tests not listed here (e.g. longest_run, serial_correlation -- fields
-with only an "expected" value to eyeball, no clean pass/fail number)
-are simply skipped.
-
-Each entry maps a dotted path into an hour's "tests" dict to how to
-summarize it:
-    "p_value"   -> pull the "p_value" field, label as p-values
-    "statistic" -> pull an explicitly named field, label as that
-                   field's name (so the output makes clear it's NOT
-                   a p-value)
-"""
-
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any

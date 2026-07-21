@@ -1,15 +1,5 @@
 """
 audio_plot.py — renders raw audio samples to a base64-encoded PNG.
-
-Kept separate from the service layer: ServeService's job is to return
-data (raw bytes + audio_samples), not to know anything about how that
-data gets presented. This module is a presentation-layer helper, called
-from the controller.
-
-Uses matplotlib's object-oriented Figure/FigureCanvasAgg API rather than
-the global `pyplot` state machine, so concurrent requests each get their
-own isolated Figure — pyplot's global state is not safe to share across
-threads handling simultaneous requests.
 """
 
 import base64

@@ -1,14 +1,5 @@
 """
-StatsService — policy layer for statistical test results.
-
-Only ever operates on the latest COMPLETED hour (never the current,
-still-being-written one), so the underlying .bin file is guaranteed
-immutable and the .stats.json cache never goes stale.
-
-Depends on a `test_runner` callable injected at construction time:
-    test_runner(data: np.ndarray) -> dict
-This keeps the actual statistical tests decoupled from this service —
-plug in your real test suite in main.py.
+Hourly stats
 """
 
 import logging

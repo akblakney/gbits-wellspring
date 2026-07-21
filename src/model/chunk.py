@@ -1,16 +1,6 @@
-"""
-Shared data model for a chunk of generated random bytes.
-
-A Chunk is the unit the pool operates on: one batch of bytes produced by
-a single generation cycle, tagged with when it was created. Later on this
-will also carry von-Neumann-extractor metadata (raw sample size, discard
-count, etc.) — omitted for now per the barebones approach.
-"""
-
 from dataclasses import dataclass
 import time
 from typing import List
-
 
 @dataclass
 class Chunk:

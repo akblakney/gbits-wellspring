@@ -66,10 +66,8 @@ class ServeService:
             total_chunks += 1
 
             if len(chunk) <= remaining_needed:
-                # Whole chunk is used, nothing left over.
                 collected.extend(chunk.data)
             else:
-                # This chunk overshoots — split it.
                 used = chunk.data[:remaining_needed]
                 excess = chunk.data[remaining_needed:]
                 collected.extend(used)
@@ -77,7 +75,6 @@ class ServeService:
                 excess_chunk = Chunk(data=excess, created_at=chunk.created_at, audio_samples=chunk.audio_samples)
                 self._archive_service.archive_excess(excess_chunk)
 
-        # Trim to exact byte count, then to exact bit count.
         self.metrics_service.record_metric('bytes_served', num_bytes)
         result_bytes = bytes(collected[:num_bytes])
         return BitsResponse(result_bytes, samples, pairs_discarded=pairs_discarded, pairs_kept=pairs_kept, total_chunks=total_chunks)

@@ -1,11 +1,3 @@
-"""
-ArchiveService — the "archived" exit path.
-
-Owns the policy of *when* something gets archived (expired off the pool
-front, or excess bytes left over from a serve/beacon call); delegates
-the actual persistence mechanics to ArchiveRepository.
-"""
-
 import logging
 
 from repository.pool_repository import PoolRepository
@@ -60,10 +52,6 @@ class ArchiveService:
                 reason, len(chunk), chunk.age_seconds(),
             )
         except OSError:
-            # Archiving is best-effort against disk/IO failures: we do NOT
-            # want a disk hiccup to take down generation or serving. Log
-            # loudly so it's visible, but let the caller proceed. The bytes
-            # are lost in this case -- worth monitoring/alerting on later.
             logger.error(
                 "Failed to archive chunk (reason=%s, bytes=%d) -- bytes lost",
                 reason, len(chunk), exc_info=True,

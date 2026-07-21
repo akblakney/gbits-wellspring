@@ -4,18 +4,6 @@ from bitarray import bitarray
 
 
 class VonNeumannExtractor:
-    """Applies the Von Neumann debiasing algorithm to a bitstream.
-
-    The input bits are grouped into non-overlapping pairs. Each pair
-    "01" produces an output bit 0, each pair "10" produces an output
-    bit 1, and pairs "00" or "11" are discarded. Any leftover single
-    bit at the end (if the input has odd length) is discarded.
-
-    The output bits are packed into a `bytearray`. If the number of
-    output bits is not a multiple of 8, the final partial byte is
-    dropped.
-    """
-
     def __init__(self):
         self.reset_state()
 

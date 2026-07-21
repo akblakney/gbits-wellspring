@@ -1,19 +1,7 @@
-"""
-PoolRepository — the lowest-level primitive for the serve pool.
-
-Owns the lock and the underlying queue. Knows nothing about serving,
-archiving, expiry policy, or beacons — it just stores chunks in FIFO
-order and lets callers append / peek / pop. All policy decisions live
-in the service layer above this.
-
-Chunks are discarded wholesale (no partial-chunk reads), per design.
-"""
-
 import collections
 import threading
 
 from model.chunk import Chunk
-
 
 class PoolRepository:
     def __init__(self):

@@ -1,20 +1,3 @@
-"""
-MetricsService — global, ever-increasing counters for bytes served and
-bytes archived (broken down by archive reason).
-
-Loads any existing counts from MetricsRepository at construction time
-(so a restart doesn't reset to zero), keeps them in memory for fast
-increments, and persists after every update -- see module docstring in
-metrics_repository.py for why persist-on-every-write is fine at this
-traffic volume.
-
-No per-hour/per-day breakdown here on purpose (per your requirements --
-this is a simple global running total, not a time series). If you want
-historical trends over time later, that's a different feature (e.g.
-snapshotting these totals periodically) layered on top of this, not a
-change to this class.
-"""
-
 import logging
 import threading
 from typing import Any
@@ -62,8 +45,4 @@ class MetricsService:
         try:
             self._metrics_repository.write(self._counters)
         except OSError:
-            # Same philosophy as ArchiveService: a disk hiccup here
-            # shouldn't take down serving/archiving. Log loudly; the
-            # in-memory counters are still correct, just not yet
-            # durable -- next successful write will catch them up.
             logger.error("Failed to persist metrics -- in-memory counts still correct", exc_info=True)

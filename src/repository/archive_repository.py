@@ -1,5 +1,5 @@
 """
-ArchiveRepository — owns the on-disk archive format.
+responsible for on-disk archive format
 
 Layout: <ARCHIVE_ROOT_PATH>/<YYYY-MM-DD>/<HH>.bin + <HH>.meta.jsonl
 
@@ -9,17 +9,6 @@ Layout: <ARCHIVE_ROOT_PATH>/<YYYY-MM-DD>/<HH>.bin + <HH>.meta.jsonl
     - line 1 is a header record (hour start, format version, etc.)
     - each subsequent line is one record per archived chunk, in the
       same order they were appended to the .bin file.
-
-Because the correspondence is positional (record N <-> Nth chunk in the
-.bin file) rather than offset-based, ALL writes must go through
-write_chunk() below, and bytes are always flushed before the matching
-metadata line is written (fail-safe ordering: a crash between the two
-leaves an untracked tail of bytes in the .bin file, which is detectable,
-rather than a metadata record describing bytes that don't exist).
-
-This class is intentionally "dumb" — it knows how to persist a chunk,
-nothing about *when* something should be archived. That policy (expired
-vs. excess) lives in ArchiveService.
 """
 
 import json
@@ -47,11 +36,6 @@ class ArchiveRepository:
         self._lock = threading.Lock()
 
     def write_chunk(self, chunk: Chunk, reason: str) -> None:
-        """
-        Persist a chunk: append its bytes to the current hour's .bin file,
-        then append a matching metadata record to that hour's .meta.jsonl.
-        `reason` is "expired" or "excess" (or whatever ArchiveService passes).
-        """
         with self._lock:
             bin_path, meta_path = self._resolve_paths(chunk.created_at)
             bin_path.parent.mkdir(parents=True, exist_ok=True)
@@ -69,11 +53,6 @@ class ArchiveRepository:
         return day_dir / f"{hour_str}.bin", day_dir / f"{hour_str}.meta.jsonl"
 
     def _write_header_if_new(self, meta_path: Path) -> None:
-        """
-        Write the header record if this hour's metadata file doesn't
-        exist yet. Must be called while holding self._lock (existence
-        check + creation needs to be atomic w.r.t. other writers).
-        """
         if meta_path.exists():
             return
 
