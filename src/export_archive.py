@@ -33,6 +33,10 @@ def parse_args():
         "--end", type=str, default=None,
         help="End date (YYYY-MM-DD), inclusive. Omit for no upper bound.",
     )
+    parser.add_argument(
+        "--data-dir", type=str, default=config.ARCHIVE_ROOT_PATH,
+        help="data directory"
+    )
     return parser.parse_args()
 
 
@@ -54,7 +58,7 @@ def main() -> None:
     total_files = 0
     out = sys.stdout.buffer
 
-    for hour_start, bin_path in iter_archive_hours(config.ARCHIVE_ROOT_PATH, start=start, end=end):
+    for hour_start, bin_path in iter_archive_hours(args.data_dir, start=start, end=end):
         with open(bin_path, "rb") as f:
             while True:
                 chunk = f.read(CHUNK_SIZE)

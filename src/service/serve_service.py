@@ -1,6 +1,4 @@
 """
-ServeService — the "served to a user" exit path.
-
 Pops whole chunks off the front of the pool until enough bytes have been
 accumulated to satisfy a request, returns exactly what was asked for, and
 routes any leftover bytes from the final (overshooting) chunk to the
