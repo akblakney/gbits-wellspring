@@ -7,6 +7,9 @@ Usage:
 Runs:
     sts -s -i <bitstreams> -w <results_dir> -F r data.bin
 with the maximum possible number of bitstreams
+
+Note: this script is a wrapper around the existing improved sts
+test suite: https://github.com/arcetri/sts
 """
 
 import argparse
