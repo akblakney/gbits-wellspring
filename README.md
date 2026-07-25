@@ -16,3 +16,7 @@ For the NIST test suite, and for 100 bitstreams, the probability of "failure" (9
 For 200 bitstreams, the probability distribution of failure counts (minimum 193/200 to pass) is:
 
 `{0: 0.8284568, 1: 0.1559774, 2: 0.0146169, 3: 0.0009051, 4: 4.26e-05, 5: 1.1e-06, 6: 1e-07}`
+
+improved sts command:
+
+`sts -s -i <bitstreams> -w . -F r data.bin`
