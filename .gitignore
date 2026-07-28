@@ -70,3 +70,6 @@ Thumbs.db
 
 data/
 log/
+
+*.wav
+audio_analysis_output/

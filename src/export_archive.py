@@ -1,6 +1,6 @@
 """
 Usage:
-    python export_archive.py                                # all archived data
+    python export_archive.py --data-dir                               # all archived data
     python export_archive.py --start 2026-07-01              # from this date onward (inclusive)
     python export_archive.py --end 2026-07-15                # through this date (inclusive)
     python export_archive.py --start 2026-07-01 --end 2026-07-15
