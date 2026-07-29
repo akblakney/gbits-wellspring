@@ -28,6 +28,7 @@ from service.beacon_service import BeaconService
 
 from core.generator import Generator
 from core.beacon_scheduler import BeaconScheduler
+from core.hour_scheduler import HourScheduler
 from controller.controller import create_app
 from config import config
 from config.logging_config import configure_logging
@@ -104,12 +105,18 @@ def start_beacon_scheduler(services: dict) -> BeaconScheduler:
     scheduler.start()
     return scheduler
 
+def start_hour_scheduler(services: dict) -> HourScheduler:
+    scheduler = HourScheduler(services['stats'])
+    scheduler.start()
+    return scheduler
+
 
 def build_app():
     repos = build_repositories()
     services = build_services(repos)
     start_generator(services) 
     start_beacon_scheduler(services)
+    start_hour_scheduler(services)
 
     return create_app(
         services["serve"],

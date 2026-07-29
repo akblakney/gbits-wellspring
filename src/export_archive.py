@@ -8,6 +8,7 @@ Usage:
 
 import argparse
 import sys
+import os
 from datetime import datetime, timezone
 
 from config import config
@@ -37,6 +38,10 @@ def parse_args():
         "--data-dir", type=str, default=config.ARCHIVE_ROOT_PATH,
         help="data directory"
     )
+    parser.add_argument(
+        "--get-size", action="store_true", default=False,
+        help="return the size of the archived data in range specified only."
+    )
     return parser.parse_args()
 
 
@@ -59,6 +64,10 @@ def main() -> None:
     out = sys.stdout.buffer
 
     for hour_start, bin_path in iter_archive_hours(args.data_dir, start=start, end=end):
+        if args.get_size:
+            total_bytes += os.path.getsize(bin_path)
+            total_files += 1
+            continue
         with open(bin_path, "rb") as f:
             while True:
                 chunk = f.read(CHUNK_SIZE)
@@ -68,8 +77,11 @@ def main() -> None:
                 total_bytes += len(chunk)
         total_files += 1
 
-    out.flush()
-    print(f"Streamed {total_bytes} bytes from {total_files} hour file(s)", file=sys.stderr)
+    if args.get_size:
+        print(f"{total_bytes} bytes from {total_files} hour file(s)")
+    else:
+        out.flush()
+        print(f"Streamed {total_bytes} bytes from {total_files} hour file(s)", file=sys.stderr)
 
 
 if __name__ == "__main__":

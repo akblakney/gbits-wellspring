@@ -20,3 +20,13 @@ For 200 bitstreams, the probability distribution of failure counts (minimum 193/
 improved sts command:
 
 `sts -s -i <bitstreams> -w . -F r data.bin`
+
+### dieharder
+Run dieharadser with all tests and verbose output:
+`dieharder -D 98302 -a -g 201 -f data.bin > report.txt`
+
+Run dieharder with specific test and param (see all tests with -l):
+`dieharder -D 98302 -g 201 -d 203 -n 2 -f`
+
+Then can get brief assessment from this with:
+`grep 'PASS\|Assess\|FAIL\|WEAK' report.txt`
