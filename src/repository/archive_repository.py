@@ -3,12 +3,9 @@ responsible for on-disk archive format
 
 Layout: <ARCHIVE_ROOT_PATH>/<YYYY-MM-DD>/<HH>.bin + <HH>.meta.jsonl
 
-- <HH>.bin is a flat, append-only stream of raw chunk bytes, nothing else.
+- <HH>.bin is a flat, append-only stream of raw chunk bytes.
 - <HH>.meta.jsonl is a JSON-lines file with a strict one-to-one,
-  same-order correspondence to the chunks written into <HH>.bin:
-    - line 1 is a header record (hour start, format version, etc.)
-    - each subsequent line is one record per archived chunk, in the
-      same order they were appended to the .bin file.
+  same-order correspondence to the chunks written into <HH>.bin
 """
 
 import json
@@ -29,10 +26,7 @@ class ArchiveRepository:
         self._root_path = Path(root_path) if root_path is not None else config.ARCHIVE_ROOT_PATH
         self._format_version = format_version if format_version is not None else config.ARCHIVE_FORMAT_VERSION
 
-        # Guards all file writes. Archive writes can come from the
-        # generator thread (sweep_expired) and from request-handling
-        # threads (archive_excess) concurrently, so this must be a real
-        # lock, not just "single-threaded assumption."
+        # Guards all file writes
         self._lock = threading.Lock()
 
     def write_chunk(self, chunk: Chunk, reason: str) -> None:
@@ -42,7 +36,6 @@ class ArchiveRepository:
 
             self._write_header_if_new(meta_path)
 
-            # Bytes first, flushed, THEN metadata — see fail-safety note above.
             self._append_bytes(bin_path, chunk.data)
             self._append_metadata(meta_path, chunk, reason)
 
@@ -71,8 +64,6 @@ class ArchiveRepository:
     @staticmethod
     def _hour_start_iso(meta_path: Path) -> str:
         # Derive hour-start timestamp from the path itself (YYYY-MM-DD/HH.meta.jsonl)
-        # rather than "now", since header creation could theoretically lag
-        # the actual hour boundary slightly.
         day_str = meta_path.parent.name
         hour_str = meta_path.stem.split(".")[0]  # "HH" from "HH.meta"
         dt = datetime.strptime(f"{day_str} {hour_str}", "%Y-%m-%d %H").replace(tzinfo=timezone.utc)

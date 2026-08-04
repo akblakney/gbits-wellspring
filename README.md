@@ -30,3 +30,7 @@ Run dieharder with specific test and param (see all tests with -l):
 
 Then can get brief assessment from this with:
 `grep 'PASS\|Assess\|FAIL\|WEAK' report.txt`
+
+### practrand
+
+`cat ~/gbits-testing/all.bin | ./RNG_test stdin -tlmax 1000M`
