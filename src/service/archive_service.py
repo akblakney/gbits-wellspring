@@ -30,7 +30,7 @@ class ArchiveService:
 
             expired = self._pool_repository.pop_front()
             if expired is not None:
-                self._archive(expired, reason="expired")
+                self._archive(expired, reason="expired", archive_values=self._is_archive_values(expired))
 
     def archive_excess(self, chunk: Chunk) -> None:
         """
@@ -39,9 +39,9 @@ class ArchiveService:
         """
         self._archive(chunk, reason="excess")
 
-    def _archive(self, chunk: Chunk, reason: str) -> None:
+    def _archive(self, chunk: Chunk, reason: str, archive_values: bool = False) -> None:
         try:
-            self._archive_repository.write_chunk(chunk, reason)
+            self._archive_repository.write_chunk(chunk, reason, archive_values=archive_values)
             self.metrics_service.record_metric('bytes_archived', len(chunk))
             if chunk.pairs_discarded is not None:
                 self.metrics_service.record_metric('pairs_discarded', chunk.pairs_discarded)
@@ -56,3 +56,12 @@ class ArchiveService:
                 "Failed to archive chunk (reason=%s, bytes=%d) -- bytes lost",
                 reason, len(chunk), exc_info=True,
             )
+
+    """
+    Return whether or not we archive values, based on time
+    """
+    @staticmethod
+    def _is_archive_values(chunk: Chunk) -> bool:
+        created_at = chunk.created_at
+        return (int(created_at) // 60) % 60 == 0
+

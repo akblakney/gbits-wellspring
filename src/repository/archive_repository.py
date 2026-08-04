@@ -1,15 +1,17 @@
 """
 responsible for on-disk archive format
 
-Layout: <ARCHIVE_ROOT_PATH>/<YYYY-MM-DD>/<HH>.bin + <HH>.meta.jsonl
+Layout: <ARCHIVE_ROOT_PATH>/<YYYY-MM-DD>/<HH>.bin + <HH>.meta.jsonl + <HH>.raw (optional)
 
 - <HH>.bin is a flat, append-only stream of raw chunk bytes.
 - <HH>.meta.jsonl is a JSON-lines file with a strict one-to-one,
   same-order correspondence to the chunks written into <HH>.bin
+- <HH>.raw is an flat, append-only stream of raw audio samples
 """
 
 import json
 import logging
+import struct
 import threading
 import time
 from datetime import datetime, timezone
@@ -20,6 +22,9 @@ from config import config
 
 logger = logging.getLogger(__name__)
 
+RAW_SAMPLE_FORMAT = "int16_le"
+_RAW_SAMPLE_STRUCT_CODE = "h"  # signed short
+
 
 class ArchiveRepository:
     def __init__(self, root_path: Path | None = None, format_version: int | None = None):
@@ -29,21 +34,35 @@ class ArchiveRepository:
         # Guards all file writes
         self._lock = threading.Lock()
 
-    def write_chunk(self, chunk: Chunk, reason: str) -> None:
+    def write_chunk(self, chunk: Chunk, reason: str, archive_values: bool = False) -> None:
         with self._lock:
-            bin_path, meta_path = self._resolve_paths(chunk.created_at)
+            bin_path, meta_path, raw_path = self._resolve_paths(chunk.created_at)
             bin_path.parent.mkdir(parents=True, exist_ok=True)
 
             self._write_header_if_new(meta_path)
 
             self._append_bytes(bin_path, chunk.data)
-            self._append_metadata(meta_path, chunk, reason)
 
-    def _resolve_paths(self, unix_timestamp: float) -> tuple[Path, Path]:
+            write_raw = archive_values and bool(chunk.audio_samples)
+            if archive_values and not chunk.audio_samples:
+                logger.warning(
+                    "archive_values=True but chunk has no audio_samples -- skipping .raw write for this chunk"
+                )
+
+            if write_raw:
+                self._append_raw_samples(raw_path, chunk.audio_samples)
+
+            self._append_metadata(meta_path, chunk, reason, audio_samples_included=write_raw)
+
+    def _resolve_paths(self, unix_timestamp: float) -> tuple[Path, Path, Path]:
         dt = datetime.fromtimestamp(unix_timestamp, tz=timezone.utc)
         day_dir = self._root_path / dt.strftime("%Y-%m-%d")
         hour_str = dt.strftime("%H")
-        return day_dir / f"{hour_str}.bin", day_dir / f"{hour_str}.meta.jsonl"
+        return (
+            day_dir / f"{hour_str}.bin",
+            day_dir / f"{hour_str}.meta.jsonl",
+            day_dir / f"{hour_str}.raw",
+        )
 
     def _write_header_if_new(self, meta_path: Path) -> None:
         if meta_path.exists():
@@ -54,6 +73,7 @@ class ArchiveRepository:
             "type": "header",
             "hour_start_utc": hour_start,
             "format_version": self._format_version,
+            "raw_sample_format": RAW_SAMPLE_FORMAT,
             "written_at_utc": datetime.now(timezone.utc).isoformat(),
         }
         with open(meta_path, "a", encoding="utf-8") as f:
@@ -76,14 +96,24 @@ class ArchiveRepository:
             f.flush()
 
     @staticmethod
-    def _append_metadata(meta_path: Path, chunk: Chunk, reason: str) -> None:
+    def _append_raw_samples(raw_path: Path, audio_samples: list[int]) -> None:
+        packed = struct.pack(f"<{len(audio_samples)}{_RAW_SAMPLE_STRUCT_CODE}", *audio_samples)
+        with open(raw_path, "ab") as f:
+            f.write(packed)
+            f.flush()
+
+    @staticmethod
+    def _append_metadata(meta_path: Path, chunk: Chunk, reason: str, audio_samples_included: bool) -> None:
         record = {
             "type": "chunk",
             "generated_at_unix": chunk.created_at,
             "archived_at_unix": time.time(),
             "length_bytes": len(chunk),
             "reason": reason,
+            "audio_samples_included": audio_samples_included,
         }
+        if audio_samples_included:
+            record["audio_samples_count"] = len(chunk.audio_samples)
         with open(meta_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record) + "\n")
             f.flush()
