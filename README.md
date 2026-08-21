@@ -1,5 +1,23 @@
 # gbits
 
+## Install
+
+`sudo apt install python3-uvicorn python3-numpy python3-scipy python3-pyaudio python3-bitarray python3-fastapi python3-matplotlib`
+
+`sudo apt install alsa-utils`
+
+## audio hardware config stuff
+
+Use `src/tools/audio_devices_test.py` to see pyaudio's list of devices with index.
+
+To see info about current device in use, 
+
+`cat /proc/asound/card1/pcm0c/sub0/hw_params`
+
+To play raw audio files generated, use 
+
+`ffplay -f s16le -ar 48000 audio.raw`
+
 ## API requests
 - run: `python3 main.py`
 - `http://127.0.0.1:8000/bits?num_bytes=10&plot=False`
@@ -31,6 +49,14 @@ Run dieharder with specific test and param (see all tests with -l):
 Then can get brief assessment from this with:
 `grep 'PASS\|Assess\|FAIL\|WEAK' report.txt`
 
+test descriptions
+
+`dieharder -a -h`
+
 ### practrand
 
 `cat ~/gbits-testing/all.bin | ./RNG_test stdin -tlmax 1000M`
+
+## fun
+
+LC_ALL=C tr -cd '[:print:]' < 01.bin
