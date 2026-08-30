@@ -1,37 +1,9 @@
 """
-live_bytes_display.py — a lightweight terminal visualization that
-tails the latest archive .bin file and displays recent bytes as
-scrolling ASCII, refreshing periodically. Purely cosmetic/fun -- not
-part of the actual service, safe to run alongside it.
-
 Usage:
     python tools/live_bytes_display.py
     python tools/live_bytes_display.py --refresh-rate 0.5 --num-bytes 512
     (press 'q' to quit)
 
-Run from inside src/.
-
-Design notes (kept deliberately lightweight, since this runs alongside
-the real service):
-  - Only ever seeks to and reads the last --num-bytes of the current
-    hour's .bin file -- never reads the whole (potentially large) file.
-  - "Latest file" is resolved directly from the current timestamp (with
-    a fallback to the previous hour right after an hour rollover),
-    reusing util.navigate's path helpers -- no directory scanning.
-  - Non-printable bytes are simply replaced with a placeholder
-    character rather than mapped via unbiased rejection sampling (the
-    technique used for real password-generation output on the
-    website). That rigor doesn't matter here -- this is a cosmetic
-    display, not a security-relevant feature -- so the simpler
-    approach is the right amount of effort.
-  - The wait-for-next-refresh and check-for-quit-key steps are combined
-    into a single curses timeout()+getch() call, so the tool sits
-    blocked in one system call between refreshes rather than busy-
-    polling or using an extra thread.
-  - Reads the file with no cross-process locking against
-    ArchiveRepository's writer. Fine for a cosmetic tool -- worst case
-    is an occasional torn read of the last couple bytes, invisible in
-    practice at this refresh rate.
 """
 
 import argparse

@@ -87,7 +87,11 @@ class MicrophoneSource(EntropySource):
 
         data = bytearray()
         for _ in range(num_chunks):
-            data.extend(self._stream.read(self.chunk_size, exception_on_overflow=False))
+            try:
+                data.extend(self._stream.read(self.chunk_size, exception_on_overflow=True))
+            except OSError as e:
+                log.warning('overflow %s', e)
+                sys.exit(1)
         return bytes(data)
 
     def standardize(self, raw: bytes) -> List[int]:
