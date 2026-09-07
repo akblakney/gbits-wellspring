@@ -63,17 +63,43 @@ class MicrophoneSource(EntropySource):
         self.lsb_bits = 1
         self.interval = 1
 
+    def _open_stream(self) -> None:
+        self._pa = pyaudio.PyAudio()
+        self._stream = self._pa.open(
+            format=self.format,
+            channels=self.channels,
+            rate=self.rate,
+            input=True,
+            input_device_index=self.input_device_index,
+            frames_per_buffer=self.chunk_size,
+        )
+
+
+    def _reopen_stream(self) -> None:
+        log.info("Reopening microphone stream")
+
+        if self._stream is not None:
+            try:
+                self._stream.stop_stream()
+            except Exception:
+                log.debug("Error stopping microphone stream", exc_info=True)
+
+            try:
+                self._stream.close()
+            except Exception:
+                log.debug("Error closing microphone stream", exc_info=True)
+
+            self._stream = None
+
+        with _suppress_stderr():
+            self._open_stream()
+
+        log.info("Microphone stream reopened")
+
+
     def open(self) -> None:
         with _suppress_stderr():
-            self._pa = pyaudio.PyAudio()
-            self._stream = self._pa.open(
-                format=self.format,
-                channels=self.channels,
-                rate=self.rate,
-                input=True,
-                input_device_index=self.input_device_index,
-                frames_per_buffer=self.chunk_size,
-            )
+            self._open_stream()
 
     def read_raw(self, num_chunks: int = 1) -> bytes:
         log.debug('in read raw microphone')
@@ -90,8 +116,8 @@ class MicrophoneSource(EntropySource):
             try:
                 data.extend(self._stream.read(self.chunk_size, exception_on_overflow=True))
             except OSError as e:
-                log.warning('overflow %s', e)
-                sys.exit(1)
+                log.warning('overflow %s -- attempting to re-open stream', e)
+                self._reopen_stream()
         return bytes(data)
 
     def standardize(self, raw: bytes) -> List[int]:
