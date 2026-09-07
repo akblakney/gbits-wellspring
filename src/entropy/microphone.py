@@ -76,7 +76,16 @@ class MicrophoneSource(EntropySource):
 
 
     def _reopen_stream(self) -> None:
-        log.info("Reopening microphone stream")
+        log.info("REOPENING MICROPHONE STREAM")
+
+        old_stream = self._stream
+        old_pa = self._pa
+
+        log.info(
+            "OLD OBJECTS: stream=%s pa=%s",
+            id(old_stream),
+            id(old_pa),
+        )
 
         if self._stream is not None:
             try:
@@ -91,10 +100,22 @@ class MicrophoneSource(EntropySource):
 
             self._stream = None
 
+        if self._pa is not None:
+            try:
+                self._pa.terminate()
+            except Exception:
+                log.debug("Error terminating PyAudio", exc_info=True)
+
+            self._pa = None
+
         with _suppress_stderr():
             self._open_stream()
 
-        log.info("Microphone stream reopened")
+        log.info(
+            "REOPEN COMPLETE: new stream=%s new pa=%s",
+            id(self._stream),
+            id(self._pa),
+        )
 
 
     def open(self) -> None:
