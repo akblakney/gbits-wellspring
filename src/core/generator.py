@@ -2,6 +2,8 @@ import logging
 import random
 import threading
 import time
+import os
+import signal
 
 from service.generation_service import GenerationService
 from config import config
@@ -42,6 +44,9 @@ class Generator:
                 try:
                     chunk = self._generate_raw_bytes()
                     self._generation_service.ingest(chunk)
+                except OSError as e:
+                    log.error('unrecoverable buffer overflow, killing process')
+                    os.kill(os.getpid(), signal.SIGTERM)
                 except Exception:
                     log.error("Unexpected error in generator loop -- continuing", exc_info=True)
         finally:

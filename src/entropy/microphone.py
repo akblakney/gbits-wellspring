@@ -74,50 +74,6 @@ class MicrophoneSource(EntropySource):
             frames_per_buffer=self.chunk_size,
         )
 
-
-    def _reopen_stream(self) -> None:
-        log.info("REOPENING MICROPHONE STREAM")
-
-        old_stream = self._stream
-        old_pa = self._pa
-
-        log.info(
-            "OLD OBJECTS: stream=%s pa=%s",
-            id(old_stream),
-            id(old_pa),
-        )
-
-        if self._stream is not None:
-            try:
-                self._stream.stop_stream()
-            except Exception:
-                log.debug("Error stopping microphone stream", exc_info=True)
-
-            try:
-                self._stream.close()
-            except Exception:
-                log.debug("Error closing microphone stream", exc_info=True)
-
-            self._stream = None
-
-        if self._pa is not None:
-            try:
-                self._pa.terminate()
-            except Exception:
-                log.debug("Error terminating PyAudio", exc_info=True)
-
-            self._pa = None
-
-        with _suppress_stderr():
-            self._open_stream()
-
-        log.info(
-            "REOPEN COMPLETE: new stream=%s new pa=%s",
-            id(self._stream),
-            id(self._pa),
-        )
-
-
     def open(self) -> None:
         with _suppress_stderr():
             self._open_stream()
@@ -134,11 +90,7 @@ class MicrophoneSource(EntropySource):
 
         data = bytearray()
         for _ in range(num_chunks):
-            try:
-                data.extend(self._stream.read(self.chunk_size, exception_on_overflow=True))
-            except OSError as e:
-                log.warning('overflow %s -- attempting to re-open stream', e)
-                self._reopen_stream()
+            data.extend(self._stream.read(self.chunk_size, exception_on_overflow=True))
         return bytes(data)
 
     def standardize(self, raw: bytes) -> List[int]:
