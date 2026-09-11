@@ -101,7 +101,7 @@ def start_generator(services: dict) -> Generator:
     return generator
 
 def start_beacon_scheduler(services: dict) -> BeaconScheduler:
-    scheduler = BeaconScheduler(services["beacon"])
+    scheduler = BeaconScheduler(services["beacon"], services["pool"], services["metrics"])
     scheduler.start()
     return scheduler
 

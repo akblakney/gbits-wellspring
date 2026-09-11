@@ -4,14 +4,18 @@ import time
 from datetime import datetime, timezone
 
 from service.beacon_service import BeaconService, PulseGenerationError
+from service.pool_service import PoolService
+from service.metrics_service import MetricsService
 from config import config
 
 logger = logging.getLogger(__name__)
 
 
 class BeaconScheduler:
-    def __init__(self, beacon_service: BeaconService):
+    def __init__(self, beacon_service: BeaconService, pool_service: PoolService, metrics_service: MetricsService):
         self._beacon_service = beacon_service
+        self._pool_service = pool_service
+        self._metrics_service = metrics_service
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -37,6 +41,11 @@ class BeaconScheduler:
                 logger.error("Skipping beacon pulse this tick -- could not generate in time", exc_info=True)
             except Exception:
                 logger.error("Unexpected error creating beacon pulse -- skipping this tick", exc_info=True)
+
+            # logging
+
+            logger.info('Pool status: %s chunks with %s bytes', self._pool_service.num_chunks(), self._pool_service.num_bytes())
+            logger.info('Metrics: %s', self._metrics_service.get_summary())
 
     def _sleep_until_next_boundary(self) -> datetime:
         now = time.time()
