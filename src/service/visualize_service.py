@@ -8,6 +8,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from util.visualization_utils import to_steps, apply_dark_style
+from service.serve_service import ServeService
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class VisualizeService:

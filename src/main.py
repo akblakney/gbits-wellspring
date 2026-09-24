@@ -25,6 +25,7 @@ from service.metrics_service import MetricsService
 from service.stats_service import StatsService
 from service.daily_stats_service import DailyStatsService
 from service.beacon_service import BeaconService
+from service.visualize_service import VisualizeService
 
 from core.generator import Generator
 from core.beacon_scheduler import BeaconScheduler

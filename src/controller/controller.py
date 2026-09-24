@@ -13,6 +13,7 @@ from util.audio_plot import render_audio_plot_base64
 
 from service.stats_service import StatsService, NoArchivedDataError
 from service.daily_stats_service import DailyStatsService
+from service.visualize_service import VisualizeService
 
 from datetime import datetime, timezone
 
