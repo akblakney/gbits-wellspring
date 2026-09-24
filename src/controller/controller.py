@@ -28,7 +28,9 @@ def verify_shared_secret(authorization: str | None = Header(None)) -> None:
         raise HTTPException(status_code=401, detail="Invalid or missing auth token")
 
 
-def create_app(serve_service: ServeService, pool_service: PoolService, stats_service: StatsService, daily_stats_service: DailyStatsService, metrics_service : MetricsService, beacon_service: BeaconService) -> FastAPI:
+def create_app(serve_service: ServeService, pool_service: PoolService, stats_service: StatsService,
+    daily_stats_service: DailyStatsService, metrics_service : MetricsService, beacon_service: BeaconService,
+    visualize_service: VisualizeService) -> FastAPI:
     app = FastAPI(title="Wellspring", dependencies=[Depends(verify_shared_secret)])
 
     @app.get("/bits")
@@ -56,6 +58,14 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
             "pairs_discarded": bits_response.pairs_discarded,
             "pairs_kept": bits_response.pairs_kept,
             "total_chunks": bits_response.total_chunks
+        })
+
+    @app.get("/visualize/walk")
+    def handle_get_visualize_walk():
+        logger.info('Entered into /visualize/walk')
+        img = visualize_service.visualize_walk()
+        return JSONResponse({
+            'walk_plot': img
         })
 
     @app.get("/stats/hour")

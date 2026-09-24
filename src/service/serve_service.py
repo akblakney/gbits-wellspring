@@ -26,6 +26,19 @@ class ServeService:
         self._archive_service = archive_service
         self.metrics_service = metrics_service
 
+    # serves an entire chunk instead of a truncated one to specified length
+    # 
+    def serve_chunk(self) -> Chunk:
+        chunk = self._pool_repository.pop_front()
+        if chunk is None:
+            # Should not happen given the availability check above,
+            # unless another consumer raced us for the same bytes.
+            raise InsufficientPoolDataError(
+                f"Pool exhausted mid-read (likely concurrent consumer): "
+                f"needed {num_bytes} bytes, only collected {len(collected)}"
+            )
+        return chunk
+
     def serve_bits(self, num_bytes: int) -> BitsResponse:
 
         if num_bytes <= 0:

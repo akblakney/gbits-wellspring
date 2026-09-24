@@ -81,6 +81,8 @@ def build_services(repos: dict) -> dict:
 
     beacon_service = BeaconService(repos["pool"], archive_service, repos["beacon"])
 
+    visualize_service = VisualizeService(serve_service)
+
     return {
         "metrics": metrics_service,
         "archive": archive_service,
@@ -89,7 +91,8 @@ def build_services(repos: dict) -> dict:
         "pool": pool_service,
         "stats": stats_service,
         "daily_stats": daily_stats_service,
-        "beacon": beacon_service
+        "beacon": beacon_service,
+        "visualize": visualize_service
     }
 
 
@@ -124,7 +127,8 @@ def build_app():
         services["stats"],
         services["daily_stats"],
         services["metrics"],
-        services['beacon']
+        services['beacon'],
+        services['visualize']
     )
 
 
