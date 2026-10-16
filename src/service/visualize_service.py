@@ -11,6 +11,7 @@ from util.visualization_utils import to_steps, apply_dark_style
 from service.archive_service import ArchiveService
 
 from model.visualized_chunk import VisualizedChunk
+from model.chunk import Chunk
 
 import logging
 
