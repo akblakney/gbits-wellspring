@@ -13,6 +13,8 @@ from service.archive_service import ArchiveService
 from model.visualized_chunk import VisualizedChunk
 from model.chunk import Chunk
 
+from fastapi import HTTPException
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,10 +32,11 @@ class VisualizeService:
 
         logger.info("in vis service, chunk size %s", len(chunk.data))
 
-        img_1d = visualize_1d_walk(chunk)
+        img_1d = self.visualize_1d_walk(chunk)
         img_2d = "sdf"
 
         visualized_chunk = VisualizedChunk(chunk, img_1d, img_2d)
+        return visualized_chunk
 
 
     def visualize_1d_walk(self, chunk: Chunk) -> str:

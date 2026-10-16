@@ -66,7 +66,7 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
         logger.info('Entered into /visualize/walk')
         vis_chunk = visualize_service.visualize()
         return JSONResponse({
-            'chunk': vis_chunk.chunk,
+            'chunk': vis_chunk.chunk.data.hex(),
             'img_1d': vis_chunk.walk1d_img,
             'img_2d': vis_chunk.walk2d_img
         })
