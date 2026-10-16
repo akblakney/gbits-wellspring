@@ -25,6 +25,7 @@ from service.metrics_service import MetricsService
 from service.stats_service import StatsService
 from service.daily_stats_service import DailyStatsService
 from service.beacon_service import BeaconService
+from service.visualize_service import VisualizeService
 
 from core.generator import Generator
 from core.beacon_scheduler import BeaconScheduler
@@ -81,6 +82,8 @@ def build_services(repos: dict) -> dict:
 
     beacon_service = BeaconService(repos["pool"], archive_service, repos["beacon"])
 
+    visualize_service = VisualizeService(archive_service)
+
     return {
         "metrics": metrics_service,
         "archive": archive_service,
@@ -89,7 +92,8 @@ def build_services(repos: dict) -> dict:
         "pool": pool_service,
         "stats": stats_service,
         "daily_stats": daily_stats_service,
-        "beacon": beacon_service
+        "beacon": beacon_service,
+        "visualize": visualize_service
     }
 
 
@@ -124,7 +128,8 @@ def build_app():
         services["stats"],
         services["daily_stats"],
         services["metrics"],
-        services['beacon']
+        services['beacon'],
+        services['visualize']
     )
 
 
