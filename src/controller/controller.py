@@ -64,9 +64,11 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
     @app.get("/visualize/walk")
     def handle_get_visualize_walk():
         logger.info('Entered into /visualize/walk')
-        img = visualize_service.visualize_walk()
+        vis_chunk = visualize_service.visualize()
         return JSONResponse({
-            'walk_plot': img
+            'chunk': vis_chunk.chunk,
+            'img_1d': vis_chunk.walk1d_img,
+            'img_2d': vis_chunk.walk2d_img
         })
 
     @app.get("/stats/hour")

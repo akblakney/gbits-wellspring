@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from util.visualization_utils import to_steps, apply_dark_style
-from service.serve_service import ServeService
+from service.archive_service import ArchiveService
+
+from model.visualized_chunk import VisualizedChunk
 
 import logging
 
@@ -16,17 +18,24 @@ logger = logging.getLogger(__name__)
 
 
 class VisualizeService:
-    def __init__(self, serve_service: ServeService):
-        self._serve_service = serve_service
+    def __init__(self, archive_service: ArchiveService):
+        self._archive_service = archive_service
 
-    def visualize_walk(self) -> str:
-        try:
-            chunk: Chunk = self._serve_service.serve_chunk()
-        except InsufficientPoolDataError as e:
-            logger.warning("Serve request failed: %s", e)
+    def visualize(self) -> VisualizedChunk:
+        chunk: Chunk = self._archive_service.get_latest_chunk()
+        if chunk is None:
+            logger.warning("No latest chunk available")
             raise HTTPException(status_code=503, detail="Not enough entropy available, try again shortly")
 
         logger.info("in vis service, chunk size %s", len(chunk.data))
+
+        img_1d = visualize_1d_walk(chunk)
+        img_2d = "sdf"
+
+        visualized_chunk = VisualizedChunk(chunk, img_1d, img_2d)
+
+
+    def visualize_1d_walk(self, chunk: Chunk) -> str:
 
         data = chunk.data
         steps = to_steps(data)

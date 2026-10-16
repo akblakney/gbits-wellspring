@@ -82,7 +82,7 @@ def build_services(repos: dict) -> dict:
 
     beacon_service = BeaconService(repos["pool"], archive_service, repos["beacon"])
 
-    visualize_service = VisualizeService(serve_service)
+    visualize_service = VisualizeService(archive_service)
 
     return {
         "metrics": metrics_service,

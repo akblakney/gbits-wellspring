@@ -14,6 +14,11 @@ class ArchiveService:
         self._pool_repository = pool_repository
         self.metrics_service = metrics_service
         self._archive_repository = archive_repository or ArchiveRepository()
+        self._latest_chunk = None
+
+    def get_latest_chunk(self) -> Chunk:
+        return self._latest_chunk
+
 
     def sweep_expired(self) -> None:
         """
@@ -51,6 +56,7 @@ class ArchiveService:
                 "Archived chunk (reason=%s, bytes=%d, age=%.2fs)",
                 reason, len(chunk), chunk.age_seconds(),
             )
+            self._latest_chunk = chunk
         except OSError:
             logger.error(
                 "Failed to archive chunk (reason=%s, bytes=%d) -- bytes lost",
