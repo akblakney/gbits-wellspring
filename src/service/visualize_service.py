@@ -7,7 +7,7 @@ matplotlib.use("Agg")  # Non-interactive backend; set before importing pyplot
 import matplotlib.pyplot as plt
 import numpy as np
 
-from util.visualization_utils import to_steps, apply_dark_style
+from util.visualization_utils import to_steps, apply_dark_style, to_bits
 from service.archive_service import ArchiveService
 
 from model.visualized_chunk import VisualizedChunk
@@ -77,7 +77,7 @@ class VisualizeService:
     def visualize_2d_walk(self, chunk: Chunk) -> str:
 
         data = chunk.data
-        bits = to_bits(data)[:max_steps * 2]
+        bits = to_bits(data)
         x_steps = bits[0::2].astype(np.int8) * 2 - 1 
         y_steps = bits[1::2].astype(np.int8) * 2 - 1 
         n = min(len(x_steps), len(y_steps))
