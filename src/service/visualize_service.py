@@ -33,7 +33,7 @@ class VisualizeService:
         logger.info("in vis service, chunk size %s", len(chunk.data))
 
         img_1d = self.visualize_1d_walk(chunk)
-        img_2d = "sdf"
+        img_2d = self.visualize_2d_walk(chunk)
 
         visualized_chunk = VisualizedChunk(chunk, img_1d, img_2d)
         return visualized_chunk
@@ -72,4 +72,43 @@ class VisualizeService:
 
         finally:
             # Important for a long-running web server.
+            plt.close(fig)
+
+    def visualize_2d_walk(self, chunk: Chunk) -> str:
+
+        data = chunk.data
+        bits = to_bits(data)[:max_steps * 2]
+        x_steps = bits[0::2].astype(np.int8) * 2 - 1 
+        y_steps = bits[1::2].astype(np.int8) * 2 - 1 
+        n = min(len(x_steps), len(y_steps))
+        x = np.cumsum(x_steps[:n])
+        y = np.cumsum(y_steps[:n])
+
+        fig, ax = plt.subplots(figsize=(8, 8)) 
+        try:
+            # Color by progress through the walk
+            points = np.array([x, y]).T.reshape(-1, 1, 2)
+            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            from matplotlib.collections import LineCollection
+            from matplotlib.cm import viridis
+            norm = plt.Normalize(0, len(x))
+            lc = LineCollection(segments, cmap=viridis, norm=norm, linewidth=0.4, alpha=0.8)
+            lc.set_array(np.arange(len(x)))
+            ax.add_collection(lc)
+            ax.autoscale()
+            ax.set_aspect("equal")
+            ax.set_xlabel("X")
+            ax.set_ylabel("Y")
+            ax.set_title(f"2D Random Walk ({n:,} steps)")
+            fig.colorbar(lc, ax=ax, label="Step number")
+            fig.tight_layout()
+
+            # render to memory
+            buffer = BytesIO()
+            fig.savefig(buffer, format="png", dpi=150, bbox_inches="tight")
+            buffer.seek(0)
+
+            # Encode PNG bytes as Base64.
+            return base64.b64encode(buffer.read()).decode("ascii")
+        finally:
             plt.close(fig)
