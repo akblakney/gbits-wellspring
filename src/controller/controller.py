@@ -13,6 +13,8 @@ from util.audio_plot import render_audio_plot_base64
 
 from service.stats_service import StatsService, NoArchivedDataError
 from service.daily_stats_service import DailyStatsService
+from service.visualize_service import VisualizeService
+from service.archive_service import ArchiveService
 
 from datetime import datetime, timezone
 
@@ -28,7 +30,9 @@ def verify_shared_secret(authorization: str | None = Header(None)) -> None:
         raise HTTPException(status_code=401, detail="Invalid or missing auth token")
 
 
-def create_app(serve_service: ServeService, pool_service: PoolService, stats_service: StatsService, daily_stats_service: DailyStatsService, metrics_service : MetricsService, beacon_service: BeaconService) -> FastAPI:
+def create_app(serve_service: ServeService, pool_service: PoolService, stats_service: StatsService,
+    daily_stats_service: DailyStatsService, metrics_service : MetricsService, beacon_service: BeaconService,
+    visualize_service: VisualizeService, archive_service: ArchiveService) -> FastAPI:
     app = FastAPI(title="Wellspring", dependencies=[Depends(verify_shared_secret)])
 
     @app.get("/bits")
@@ -56,6 +60,21 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
             "pairs_discarded": bits_response.pairs_discarded,
             "pairs_kept": bits_response.pairs_kept,
             "total_chunks": bits_response.total_chunks
+        })
+
+    @app.get("/latest-chunk")
+    def handle_get_latest_chunk(visualize: bool = False):
+        logger.info('Entered into /latest-chunk')
+        if visualize:
+            vis_chunk = visualize_service.visualize()
+            return JSONResponse({
+                'chunk': vis_chunk.chunk.data.hex(),
+                'img_1d': vis_chunk.walk1d_img,
+                'img_2d': vis_chunk.walk2d_img
+            })
+        chunk = archive_service.get_latest_chunk()
+        return JSONResponse({
+            'chunk': chunk.data.hex()
         })
 
     @app.get("/stats/hour")

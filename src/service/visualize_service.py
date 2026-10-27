@@ -1,0 +1,114 @@
+import base64
+from io import BytesIO
+
+import matplotlib
+matplotlib.use("Agg")  # Non-interactive backend; set before importing pyplot
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from util.visualization_utils import to_steps, apply_dark_style, to_bits
+from service.archive_service import ArchiveService
+
+from model.visualized_chunk import VisualizedChunk
+from model.chunk import Chunk
+
+from fastapi import HTTPException
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class VisualizeService:
+    def __init__(self, archive_service: ArchiveService):
+        self._archive_service = archive_service
+
+    def visualize(self) -> VisualizedChunk:
+        chunk: Chunk = self._archive_service.get_latest_chunk()
+        if chunk is None:
+            logger.warning("No latest chunk available")
+            raise HTTPException(status_code=503, detail="Not enough entropy available, try again shortly")
+
+        logger.info("in vis service, chunk size %s", len(chunk.data))
+
+        img_1d = self.visualize_1d_walk(chunk)
+        img_2d = self.visualize_2d_walk(chunk)
+
+        visualized_chunk = VisualizedChunk(chunk, img_1d, img_2d)
+        return visualized_chunk
+
+
+    def visualize_1d_walk(self, chunk: Chunk) -> str:
+
+        data = chunk.data
+        steps = to_steps(data)
+        walk = np.cumsum(steps)
+
+        apply_dark_style()
+
+        fig, ax = plt.subplots(figsize=(12, 5))
+        try:
+            ax.plot(walk, linewidth=0.5, color="steelblue")
+            ax.axhline(
+                0,
+                color="white",
+                linewidth=0.5,
+                linestyle="--",
+                alpha=0.4,
+            )
+            ax.set_xlabel("Step")
+            ax.set_ylabel("Position")
+            ax.set_title(f"1D Random Walk ({len(steps):,} steps)")
+            fig.tight_layout()
+
+            # Render the figure into memory.
+            buffer = BytesIO()
+            fig.savefig(buffer, format="png", dpi=150, bbox_inches="tight")
+            buffer.seek(0)
+
+            # Encode PNG bytes as Base64.
+            return base64.b64encode(buffer.read()).decode("ascii")
+
+        finally:
+            # Important for a long-running web server.
+            plt.close(fig)
+
+    def visualize_2d_walk(self, chunk: Chunk) -> str:
+
+        data = chunk.data
+        bits = to_bits(data)
+        x_steps = bits[0::2].astype(np.int8) * 2 - 1 
+        y_steps = bits[1::2].astype(np.int8) * 2 - 1 
+        n = min(len(x_steps), len(y_steps))
+        x = np.cumsum(x_steps[:n])
+        y = np.cumsum(y_steps[:n])
+
+        fig, ax = plt.subplots(figsize=(8, 8)) 
+        try:
+            # Color by progress through the walk
+            points = np.array([x, y]).T.reshape(-1, 1, 2)
+            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            from matplotlib.collections import LineCollection
+            from matplotlib.cm import viridis
+            norm = plt.Normalize(0, len(x))
+            lc = LineCollection(segments, cmap=viridis, norm=norm, linewidth=0.4, alpha=0.8)
+            lc.set_array(np.arange(len(x)))
+            ax.add_collection(lc)
+            ax.autoscale()
+            ax.set_aspect("equal")
+            ax.set_xlabel("X")
+            ax.set_ylabel("Y")
+            ax.set_title(f"2D Random Walk ({n:,} steps)")
+            fig.colorbar(lc, ax=ax, label="Step number")
+            fig.tight_layout()
+
+            # render to memory
+            buffer = BytesIO()
+            fig.savefig(buffer, format="png", dpi=150, bbox_inches="tight")
+            buffer.seek(0)
+
+            # Encode PNG bytes as Base64.
+            return base64.b64encode(buffer.read()).decode("ascii")
+        finally:
+            plt.close(fig)
