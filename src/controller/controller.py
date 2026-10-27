@@ -61,14 +61,19 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
             "total_chunks": bits_response.total_chunks
         })
 
-    @app.get("/visualize/walk")
-    def handle_get_visualize_walk():
-        logger.info('Entered into /visualize/walk')
-        vis_chunk = visualize_service.visualize()
+    @app.get("/latest-chunk")
+    def handle_get_latest_chunk(visualize: bool = False):
+        logger.info('Entered into /latest-chunk')
+        if visualize:
+            vis_chunk = visualize_service.visualize()
+            return JSONResponse({
+                'chunk': vis_chunk.chunk.data.hex(),
+                'img_1d': vis_chunk.walk1d_img,
+                'img_2d': vis_chunk.walk2d_img
+            })
+        chunk = archive_service.get_latest_chunk()
         return JSONResponse({
-            'chunk': vis_chunk.chunk.data.hex(),
-            'img_1d': vis_chunk.walk1d_img,
-            'img_2d': vis_chunk.walk2d_img
+            'chunk': chunk.data.hex()
         })
 
     @app.get("/stats/hour")
