@@ -129,7 +129,8 @@ def build_app():
         services["daily_stats"],
         services["metrics"],
         services['beacon'],
-        services['visualize']
+        services['visualize'],
+        services['archive']
     )
 
 
