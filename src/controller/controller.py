@@ -10,6 +10,7 @@ from service.metrics_service import MetricsService
 from service.beacon_service import BeaconService
 from model.response.bits_response import BitsResponse
 from util.audio_plot import render_audio_plot_base64
+from util.response_format import chunk_dict
 
 from service.stats_service import StatsService, NoArchivedDataError
 from service.daily_stats_service import DailyStatsService
@@ -68,13 +69,13 @@ def create_app(serve_service: ServeService, pool_service: PoolService, stats_ser
         if visualize:
             vis_chunk = visualize_service.visualize()
             return JSONResponse({
-                'chunk': vis_chunk.chunk.data.hex(),
+                'chunk': chunk_dict(vis_chunk.chunk),
                 'img_1d': vis_chunk.walk1d_img,
                 'img_2d': vis_chunk.walk2d_img
             })
         chunk = archive_service.get_latest_chunk()
         return JSONResponse({
-            'chunk': chunk.data.hex()
+            'chunk': chunk_dict(chunk)
         })
 
     @app.get("/stats/hour")
