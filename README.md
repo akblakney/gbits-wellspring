@@ -57,6 +57,10 @@ test descriptions
 
 `cat ~/gbits-testing/all.bin | ./RNG_test stdin -tlmax 1000M`
 
+### parse archive p-values
+The following prints list of endline separate p-values for all stats files in archive directory:
+`grep "p_value" -r --include="*.stats.json" | awk '{print $3}'`
+
 ## fun
 
 LC_ALL=C tr -cd '[:print:]' < 01.bin
